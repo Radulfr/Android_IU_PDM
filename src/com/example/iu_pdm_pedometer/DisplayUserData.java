@@ -16,7 +16,7 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 
 public class DisplayUserData extends Activity {
-
+	public final static String TOPTIME = "com.example.iu_pdm_pedometer.TOPTIME";
 	@SuppressLint("NewApi")
 
 	private TextView tvDisplayTime;
@@ -59,7 +59,7 @@ public class DisplayUserData extends Activity {
 	}
 	public void saveNGo(View view){
 		TimePicker tp = (TimePicker) findViewById(R.id.timePicker);
-		//Intent intent = new Intent(this, StartCount.class);
+		Intent intent = new Intent(this, StartCount.class);
 		int hour = tp.getCurrentHour();
 		int minute = tp.getCurrentMinute();
 		Time top_time = new Time(); 
@@ -73,8 +73,9 @@ public class DisplayUserData extends Activity {
 		time[3] = Time.MONTH_DAY;
 		time[4] = Time.MONTH;
 		time[5] = Time.YEAR;
-										
-		System.out.println("theTime = "+ top_time.hour + ":" + top_time.minute);
+		intent.putExtra(TOPTIME, time);								
+		//System.out.println("theTime = "+ top_time.hour + ":" + top_time.minute);
+		startActivity(intent);
 	}
 
 	/**

@@ -10,5 +10,6 @@
     <string name="button_send">Send</string>
     <string name="title_activity_display_user_data">DisplayUserData</string>
     <string name="pick_top_time">Save hour and start</string>
+    <string name="title_activity_start_count">StartCount</string>
 
 </resources>
