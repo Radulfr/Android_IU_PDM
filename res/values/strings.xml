@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">IU_PDM_Pedometer</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="your_height_cm">Your height (cm)</string>
+    <string name="your_weight_kg">Your weight (kg)</string>
+    <string name="leg_longitude_cm">Your leg longitude (cm)</string>
+    <string name="button_send">Send</string>
+    <string name="title_activity_display_user_data">DisplayUserData</string>
+    <string name="pick_top_time">Save hour and start</string>
+
+</resources>
