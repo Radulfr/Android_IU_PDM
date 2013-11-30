@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.text.format.Time;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,7 +51,7 @@ public class DisplayUserData extends Activity {
 		TextView tv = (TextView) findViewById(R.id.info); 
 		tv.setText("Your IMC is " + imc +
 				"\n\nYou are probably "+message +
-				"\n\nTraining time estimated: " + time_training +
+				"\n\nTraining time estimated: " + time_training + " minutes/day"+
 				"\nCan you select your top time?"); 
 		//setContentView(tv); 
 		// Show the Up button in the action bar.
@@ -58,9 +59,22 @@ public class DisplayUserData extends Activity {
 	}
 	public void saveNGo(View view){
 		TimePicker tp = (TimePicker) findViewById(R.id.timePicker);
+		//Intent intent = new Intent(this, StartCount.class);
 		int hour = tp.getCurrentHour();
 		int minute = tp.getCurrentMinute();
-		System.out.println("theTime = " +hour+":"+minute);
+		Time top_time = new Time(); 
+		// Set the correct date here
+		top_time.setToNow();
+		top_time.set(Time.SECOND, minute, hour, Time.MONTH_DAY, Time.MONTH, Time.YEAR);
+		int [] time = new int[6];
+		time[0] = Time.SECOND;
+		time[1] = top_time.minute;	
+		time[2] = top_time.hour;
+		time[3] = Time.MONTH_DAY;
+		time[4] = Time.MONTH;
+		time[5] = Time.YEAR;
+										
+		System.out.println("theTime = "+ top_time.hour + ":" + top_time.minute);
 	}
 
 	/**
