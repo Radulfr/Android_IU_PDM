@@ -11,5 +11,6 @@
     <string name="title_activity_display_user_data">DisplayUserData</string>
     <string name="pick_top_time">Save hour and start</string>
     <string name="title_activity_start_count">StartCount</string>
+    <string name="initial">0</string>
 
 </resources>

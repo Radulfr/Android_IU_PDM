@@ -18,6 +18,8 @@ import android.os.Build;
 public class StartCount extends Activity implements SensorEventListener {
 	private SensorManager mSensorManager;
 	private Sensor mAcc;
+	private float prev_step;
+	private int nsteps = 0; 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -25,12 +27,16 @@ public class StartCount extends Activity implements SensorEventListener {
 		// Show the Up button in the action bar.
 		Intent i = getIntent();
 		int [] time = i.getIntArrayExtra(DisplayUserData.TOPTIME);
+		
 		TextView tv = (TextView) findViewById(R.id.timeset);
 		tv.setText("Top hour: " + time[2]+":"+time[1]);
 		
+		TextView ns = (TextView) findViewById(R.id.step_count);
+		ns.setText("Steps: " + nsteps);
+		ns.setHeight(30);
+		
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 	    mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-	    
 		setupActionBar();
 	}
 
@@ -78,11 +84,20 @@ public class StartCount extends Activity implements SensorEventListener {
 	  public final void onSensorChanged(SensorEvent event) {
 	    // The light sensor returns a single value.
 	    // Many sensors return 3 values, one for each axis.
-	    float ac1 = event.values[0];
-	    float ac2 = event.values[1];
-	    float ac3 = event.values[2];
+	    float step_sensor = event.values[0];
+	    //float ac2 = event.values[1];
+	    //float ac3 = event.values[2];
+	    if (step_sensor >= 12.0 && prev_step < 12.0){
+	    	// Do something
+	    	nsteps++; 
+			TextView ns = (TextView) findViewById(R.id.step_count);
+			ns.setText("Steps: " + nsteps);
+			ns.setHeight(30);
+	    	System.out.println("Step! : " + step_sensor + " ----> " + nsteps);
+	    }
+	    	prev_step = step_sensor; 
 	    
-	    System.out.println(ac1 + " - " + ac2 + " - " + ac3);
+	     
 	    // Do something with this sensor value.
 	  }
 
