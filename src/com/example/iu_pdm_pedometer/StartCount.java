@@ -7,11 +7,17 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 
-public class StartCount extends Activity {
-
+public class StartCount extends Activity implements SensorEventListener {
+	private SensorManager mSensorManager;
+	private Sensor mAcc;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -21,6 +27,10 @@ public class StartCount extends Activity {
 		int [] time = i.getIntArrayExtra(DisplayUserData.TOPTIME);
 		TextView tv = (TextView) findViewById(R.id.timeset);
 		tv.setText("Top hour: " + time[2]+":"+time[1]);
+		
+		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+	    mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+	    
 		setupActionBar();
 	}
 
@@ -57,5 +67,35 @@ public class StartCount extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+
+	@Override
+	public void onAccuracyChanged(Sensor arg0, int arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	  @Override
+	  public final void onSensorChanged(SensorEvent event) {
+	    // The light sensor returns a single value.
+	    // Many sensors return 3 values, one for each axis.
+	    float ac1 = event.values[0];
+	    float ac2 = event.values[1];
+	    float ac3 = event.values[2];
+	    
+	    System.out.println(ac1 + " - " + ac2 + " - " + ac3);
+	    // Do something with this sensor value.
+	  }
+
+	  @Override
+	  protected void onResume() {
+	    super.onResume();
+	    mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+	  }
+
+	  @Override
+	  protected void onPause() {
+	    super.onPause();
+	    mSensorManager.unregisterListener(this);
+	  }
 
 }
