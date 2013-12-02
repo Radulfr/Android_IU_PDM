@@ -28,35 +28,35 @@ public class StartCount extends Activity implements SensorEventListener {
 	private int valid_steps = 0; 
 	private short rings = 3; 
 	private int interval = 0; 
-	private Date initial_time; 
-	private Date next_time; 
-	private Date initial_interval; 
-	private Date next_interval; 
-	private Date prevStep_time;
+	private int initial_time; 
+	private int next_time; 
+	private int initial_interval; 
+	private int next_interval; 
+	private int prevStep_time;
 	private boolean walking = false; 
 	
 	
-	public Date getPrevStep_time() {
+	public int getPrevStep_time() {
 		return prevStep_time;
 	}
 
-	public void setPrevStep_time(Date prevStep_time) {
+	public void setPrevStep_time(int prevStep_time) {
 		this.prevStep_time = prevStep_time;
 	}
 
-	public Date getInitial_interval() {
+	public int getInitial_interval() {
 		return initial_interval;
 	}
 
-	public void setInitial_interval(Date initial_interval) {
-		this.initial_interval = initial_interval;
+	public void setInitial_interval(int i) {
+		this.initial_interval = i;
 	}
 
-	public Date getNext_interval() {
+	public int getNext_interval() {
 		return next_interval;
 	}
 
-	public void setNext_interval(Date next_interval) {
+	public void setNext_interval(int next_interval) {
 		this.next_interval = next_interval;
 	}
 
@@ -68,19 +68,19 @@ public class StartCount extends Activity implements SensorEventListener {
 		this.walking = walking;
 	}
 
-	public Date getNext_time() {
+	public int getNext_time() {
 		return next_time;
 	}
 
-	public void setNext_time(Date next_time) {
+	public void setNext_time(int next_time) {
 		this.next_time = next_time;
 	}
 
-	public Date getInitial_time() {
+	public int getInitial_time() {
 		return initial_time;
 	}
 
-	public void setInitial_time(Date initial_time) {
+	public void setInitial_time(int initial_time) {
 		this.initial_time = initial_time;
 	}
 
@@ -145,8 +145,12 @@ public class StartCount extends Activity implements SensorEventListener {
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 	    mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	    
-	    setInitial_time(new Date()); 
+	    setInitial_time(getTime()); 
+	    setInitial_interval(getTime()); 
 		setupActionBar();
+	}
+	public int getTime(){
+		return (int) (new Date().getTime()/1000);
 	}
 
 	/**
@@ -195,13 +199,12 @@ public class StartCount extends Activity implements SensorEventListener {
 	    //float ac2 = event.values[1];
 	    //float ac3 = event.values[2];
 	    if (step_sensor >= 12.0 && prev_step < 12.0){
-	    	setNext_time(new Date());
+	    	setNext_time(getTime());
 	    	
-	    	System.out.println(getNext_time().getTime()*1000);
 	    	if (!isWalking()){
-	    		if((getNext_time().getTime()/1000 - getInitial_time().getTime()/1000) >= THRESHOLD_TIME){
+	    		if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){
 	    			setNsteps(0); 
-	    			setInitial_time(new Date()); 
+	    			setInitial_time(getTime()); 
 	    		}
 	    		else{
 	    			setNsteps(getNsteps()+1);
@@ -209,13 +212,15 @@ public class StartCount extends Activity implements SensorEventListener {
 	    		}
 	    	}
 	    	else{
-	    		if((getNext_time().getTime()/1000 - getInitial_time().getTime()/1000) >= THRESHOLD_TIME){
+	    		if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){
 	    			setNsteps(0); 
-	    			setInitial_time(new Date()); 
+	    			setInitial_time(getTime());
+	    			setNext_time(getTime());
 	    			setWalking(false); 
 	    		}
 	    		else{
 	    			setNsteps(getNsteps()+1); 
+	    			setInitial_time(getTime());
 	    		}
 	    	}
 			TextView ns = (TextView) findViewById(R.id.step_count);
@@ -224,7 +229,7 @@ public class StartCount extends Activity implements SensorEventListener {
 	    	System.out.println("Step! : " + step_sensor + " ----> " + getNsteps());
 	    }
 	    	prev_step = step_sensor; 
-	    setPrevStep_time(new Date()); 
+	    setPrevStep_time(getTime()); 
 	     
 	    // Do something with this sensor value.
 	  }
