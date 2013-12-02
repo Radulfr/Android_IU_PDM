@@ -240,7 +240,6 @@ public class StartCount extends Activity implements SensorEventListener {
 	    				else
 	    					System.out.println("Interval reached: " + (getValid_time()/600));
 	    			}
-	    				
 	    		}
 	    	}
 			TextView ns = (TextView) findViewById(R.id.step_count);
@@ -248,15 +247,15 @@ public class StartCount extends Activity implements SensorEventListener {
 			ns.setText("Steps: " + nsteps);
 			ns.setTextSize(40);
 			extra.setText("Time walked: " + (getNext_time() - getInitial_interval() )/60 + " minutes"   
-			+ "\nEffective time walked: " + getValid_time()/60 + " minutes");
-			extra.setTextSize(30); 
+			+ "\nEffective time walked: " + getValid_time()/60 + " minutes" +
+					"\nIntervals completed: "+getValid_time()/600 + "/" + getInterval());
+			extra.setTextSize(25); 
 	    	System.out.println("Step! : " + step_sensor + " ----> " + getNsteps() +
 	    			"\nEffective time walked: " + getValid_time()/60 + " minutes");
 	    }
 	    	prev_step = step_sensor; 
 	    setPrevStep_time(getTime()); 
-	     
-	    // Do something with this sensor value.
+
 	  }
 
 	  @Override
