@@ -33,7 +33,8 @@
         <activity
             android:name="com.example.iu_pdm_pedometer.StartCount"
             android:label="@string/title_activity_start_count"
-            android:parentActivityName="com.example.iu_pdm_pedometer.DisplayUserData" >
+            android:parentActivityName="com.example.iu_pdm_pedometer.DisplayUserData" 
+            android:screenOrientation="landscape">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.iu_pdm_pedometer.DisplayUserData" />

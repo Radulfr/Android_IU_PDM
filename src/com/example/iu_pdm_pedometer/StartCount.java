@@ -29,11 +29,11 @@ public class StartCount extends Activity implements SensorEventListener {
 		int [] time = i.getIntArrayExtra(DisplayUserData.TOPTIME);
 		
 		TextView tv = (TextView) findViewById(R.id.timeset);
-		tv.setText("Top hour: " + time[2]+":"+time[1]);
+		tv.setText("Top hour: " + time[2]+":"+time[1] +"\n Please put your phone horizontal on your belt. ");
 		
 		TextView ns = (TextView) findViewById(R.id.step_count);
 		ns.setText("Steps: " + nsteps);
-		ns.setHeight(30);
+		ns.setTextSize(40);
 		
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 	    mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -92,7 +92,7 @@ public class StartCount extends Activity implements SensorEventListener {
 	    	nsteps++; 
 			TextView ns = (TextView) findViewById(R.id.step_count);
 			ns.setText("Steps: " + nsteps);
-			ns.setHeight(30);
+			ns.setTextSize(40);
 	    	System.out.println("Step! : " + step_sensor + " ----> " + nsteps);
 	    }
 	    	prev_step = step_sensor; 
