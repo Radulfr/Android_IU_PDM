@@ -26,6 +26,7 @@ public class StartCount extends Activity implements SensorEventListener {
 	private float prev_step;
 	private int nsteps = 0; 
 	private int valid_steps = 0; 
+	private int valid_time = 0; 
 	private short rings = 3; 
 	private int interval = 0; 
 	private int initial_time; 
@@ -36,6 +37,14 @@ public class StartCount extends Activity implements SensorEventListener {
 	private boolean walking = false; 
 	
 	
+	public int getValid_time() {
+		return valid_time;
+	}
+
+	public void setValid_time(int valid_time) {
+		this.valid_time = valid_time;
+	}
+
 	public int getPrevStep_time() {
 		return prevStep_time;
 	}
@@ -202,12 +211,14 @@ public class StartCount extends Activity implements SensorEventListener {
 	    	setNext_time(getTime());
 	    	
 	    	if (!isWalking()){
-	    		if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){
+	    		if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){ 
+	    			//maybe not neccessary
 	    			setNsteps(0); 
 	    			setInitial_time(getTime()); 
 	    		}
 	    		else{
 	    			setNsteps(getNsteps()+1);
+	    			setInitial_interval(getTime()); 
 	    			setWalking(true); 
 	    		}
 	    	}
@@ -216,17 +227,31 @@ public class StartCount extends Activity implements SensorEventListener {
 	    			setNsteps(0); 
 	    			setInitial_time(getTime());
 	    			setNext_time(getTime());
+
 	    			setWalking(false); 
 	    		}
 	    		else{
 	    			setNsteps(getNsteps()+1); 
 	    			setInitial_time(getTime());
+	    			if ((getNext_time() - getInitial_interval()) >= THRESHOLD_TIME_WALKING){
+	    				setValid_time((getNext_time() - getInitial_interval()) + getValid_time());
+	    				if (getValid_time() >= getInterval()*THRESHOLD_TIME_WALKING)
+	    					System.out.println("YOU HAVE FINISHED!");
+	    				else
+	    					System.out.println("Interval reached: " + (getValid_time()/600));
+	    			}
+	    				
 	    		}
 	    	}
 			TextView ns = (TextView) findViewById(R.id.step_count);
+			TextView extra = (TextView) findViewById(R.id.some_info);
 			ns.setText("Steps: " + nsteps);
 			ns.setTextSize(40);
-	    	System.out.println("Step! : " + step_sensor + " ----> " + getNsteps());
+			extra.setText("Time walked: " + (getNext_time() - getInitial_interval() )/60 + " minutes"   
+			+ "\nEffective time walked: " + getValid_time()/60 + " minutes");
+			extra.setTextSize(30); 
+	    	System.out.println("Step! : " + step_sensor + " ----> " + getNsteps() +
+	    			"\nEffective time walked: " + getValid_time()/60 + " minutes");
 	    }
 	    	prev_step = step_sensor; 
 	    setPrevStep_time(getTime()); 

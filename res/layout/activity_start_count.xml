@@ -20,5 +20,12 @@
         android:layout_below="@id/timeset"
         android:text="@string/initial"
         />
+        <TextView
+        android:id="@+id/some_info"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_count"
+        android:text="@string/initial"
+        />
 
 </RelativeLayout>

@@ -27,8 +27,9 @@ public final class R {
         public static final int Height=0x7f080002;
         public static final int Leglongitude=0x7f080004;
         public static final int Weight=0x7f080003;
-        public static final int action_settings=0x7f080007;
+        public static final int action_settings=0x7f080008;
         public static final int info=0x7f080000;
+        public static final int some_info=0x7f080007;
         public static final int step_count=0x7f080006;
         public static final int timePicker=0x7f080001;
         public static final int timeset=0x7f080005;
