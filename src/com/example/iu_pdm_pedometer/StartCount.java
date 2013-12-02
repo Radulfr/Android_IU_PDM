@@ -1,5 +1,7 @@
 package com.example.iu_pdm_pedometer;
 
+import java.util.Date;
+
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
@@ -16,10 +18,112 @@ import android.hardware.SensorManager;
 import android.os.Build;
 
 public class StartCount extends Activity implements SensorEventListener {
+	
+	public static final int THRESHOLD_TIME = 20; 
+	public static final int THRESHOLD_TIME_WALKING = 600; // ten minutes	
 	private SensorManager mSensorManager;
 	private Sensor mAcc;
 	private float prev_step;
 	private int nsteps = 0; 
+	private int valid_steps = 0; 
+	private short rings = 3; 
+	private int interval = 0; 
+	private Date initial_time; 
+	private Date next_time; 
+	private Date initial_interval; 
+	private Date next_interval; 
+	private Date prevStep_time;
+	private boolean walking = false; 
+	
+	
+	public Date getPrevStep_time() {
+		return prevStep_time;
+	}
+
+	public void setPrevStep_time(Date prevStep_time) {
+		this.prevStep_time = prevStep_time;
+	}
+
+	public Date getInitial_interval() {
+		return initial_interval;
+	}
+
+	public void setInitial_interval(Date initial_interval) {
+		this.initial_interval = initial_interval;
+	}
+
+	public Date getNext_interval() {
+		return next_interval;
+	}
+
+	public void setNext_interval(Date next_interval) {
+		this.next_interval = next_interval;
+	}
+
+	public boolean isWalking() {
+		return walking;
+	}
+
+	public void setWalking(boolean walking) {
+		this.walking = walking;
+	}
+
+	public Date getNext_time() {
+		return next_time;
+	}
+
+	public void setNext_time(Date next_time) {
+		this.next_time = next_time;
+	}
+
+	public Date getInitial_time() {
+		return initial_time;
+	}
+
+	public void setInitial_time(Date initial_time) {
+		this.initial_time = initial_time;
+	}
+
+	public float getPrev_step() {
+		return prev_step;
+	}
+
+	public void setPrev_step(float prev_step) {
+		this.prev_step = prev_step;
+	}
+
+	public int getNsteps() {
+		return nsteps;
+	}
+
+	public void setNsteps(int nsteps) {
+		this.nsteps = nsteps;
+	}
+
+	public int getValid_steps() {
+		return valid_steps;
+	}
+
+	public void setValid_steps(int valid_steps) {
+		this.valid_steps = valid_steps;
+	}
+
+	public short getRings() {
+		return rings;
+	}
+
+	public void setRings(short rings) {
+		this.rings = rings;
+	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -28,8 +132,11 @@ public class StartCount extends Activity implements SensorEventListener {
 		Intent i = getIntent();
 		int [] time = i.getIntArrayExtra(DisplayUserData.TOPTIME);
 		
+		setInterval(time[DisplayUserData.TIME_TRAINING_INDEX]/10); 
+		
 		TextView tv = (TextView) findViewById(R.id.timeset);
-		tv.setText("Top hour: " + time[2]+":"+time[1] +"\n Please put your phone horizontal on your belt. ");
+		tv.setText("Top hour: " + time[2]+":"+time[1] +" in " + getInterval() +
+				" intervals máx\n Please put your phone horizontal on your belt. ");
 		
 		TextView ns = (TextView) findViewById(R.id.step_count);
 		ns.setText("Steps: " + nsteps);
@@ -37,6 +144,8 @@ public class StartCount extends Activity implements SensorEventListener {
 		
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 	    mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+	    
+	    setInitial_time(new Date()); 
 		setupActionBar();
 	}
 
@@ -82,21 +191,40 @@ public class StartCount extends Activity implements SensorEventListener {
 
 	  @Override
 	  public final void onSensorChanged(SensorEvent event) {
-	    // The light sensor returns a single value.
-	    // Many sensors return 3 values, one for each axis.
 	    float step_sensor = event.values[0];
 	    //float ac2 = event.values[1];
 	    //float ac3 = event.values[2];
 	    if (step_sensor >= 12.0 && prev_step < 12.0){
-	    	// Do something
-	    	nsteps++; 
+	    	setNext_time(new Date());
+	    	
+	    	System.out.println(getNext_time().getTime()*1000);
+	    	if (!isWalking()){
+	    		if((getNext_time().getTime()/1000 - getInitial_time().getTime()/1000) >= THRESHOLD_TIME){
+	    			setNsteps(0); 
+	    			setInitial_time(new Date()); 
+	    		}
+	    		else{
+	    			setNsteps(getNsteps()+1);
+	    			setWalking(true); 
+	    		}
+	    	}
+	    	else{
+	    		if((getNext_time().getTime()/1000 - getInitial_time().getTime()/1000) >= THRESHOLD_TIME){
+	    			setNsteps(0); 
+	    			setInitial_time(new Date()); 
+	    			setWalking(false); 
+	    		}
+	    		else{
+	    			setNsteps(getNsteps()+1); 
+	    		}
+	    	}
 			TextView ns = (TextView) findViewById(R.id.step_count);
 			ns.setText("Steps: " + nsteps);
 			ns.setTextSize(40);
-	    	System.out.println("Step! : " + step_sensor + " ----> " + nsteps);
+	    	System.out.println("Step! : " + step_sensor + " ----> " + getNsteps());
 	    }
 	    	prev_step = step_sensor; 
-	    
+	    setPrevStep_time(new Date()); 
 	     
 	    // Do something with this sensor value.
 	  }

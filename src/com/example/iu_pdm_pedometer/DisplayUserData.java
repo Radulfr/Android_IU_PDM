@@ -17,6 +17,8 @@ import android.widget.TimePicker;
 
 public class DisplayUserData extends Activity {
 	public final static String TOPTIME = "com.example.iu_pdm_pedometer.TOPTIME";
+	private int time_training = 30;
+	public final static int TIME_TRAINING_INDEX = 6;
 	@SuppressLint("NewApi")
 
 	private TextView tvDisplayTime;
@@ -35,7 +37,7 @@ public class DisplayUserData extends Activity {
 		float[] data = i.getFloatArrayExtra(MainActivity.THE_DATA);
 		float imc = data[MainActivity.WEIGHT_INDEX]/((data[MainActivity.HEIGHT_INDEX]/100)*(data[MainActivity.HEIGHT_INDEX]/100)); 
 		String message="";
-		short time_training = 30; 
+		 
 		if (imc < 18.5)
 			message = "under your better weight";
 		else if( imc >= 18.5 && imc < 25)
@@ -66,13 +68,15 @@ public class DisplayUserData extends Activity {
 		// Set the correct date here
 		top_time.setToNow();
 		top_time.set(Time.SECOND, minute, hour, Time.MONTH_DAY, Time.MONTH, Time.YEAR);
-		int [] time = new int[6];
+		int [] time = new int[7];
 		time[0] = Time.SECOND;
 		time[1] = top_time.minute;	
 		time[2] = top_time.hour;
 		time[3] = Time.MONTH_DAY;
 		time[4] = Time.MONTH;
 		time[5] = Time.YEAR;
+		
+		time[TIME_TRAINING_INDEX] = time_training;
 		intent.putExtra(TOPTIME, time);								
 		//System.out.println("theTime = "+ top_time.hour + ":" + top_time.minute);
 		startActivity(intent);
