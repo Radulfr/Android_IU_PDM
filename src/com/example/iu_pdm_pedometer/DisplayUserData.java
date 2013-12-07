@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -62,6 +63,7 @@ public class DisplayUserData extends Activity {
 	public void saveNGo(View view){
 		TimePicker tp = (TimePicker) findViewById(R.id.timePicker);
 		Intent intent = new Intent(this, StartCount.class);
+		//Intent intent = new Intent(this, StartCountService.class);
 		int hour = tp.getCurrentHour();
 		int minute = tp.getCurrentMinute();
 		Time top_time = new Time(); 
@@ -78,8 +80,10 @@ public class DisplayUserData extends Activity {
 		
 		time[TIME_TRAINING_INDEX] = time_training;
 		intent.putExtra(TOPTIME, time);								
-		//System.out.println("theTime = "+ top_time.hour + ":" + top_time.minute);
+		System.out.println("theTime = "+ top_time.hour + ":" + top_time.minute);
 		startActivity(intent);
+		// NEW ------------------------------------------
+		//startService(intent);
 	}
 
 	/**
