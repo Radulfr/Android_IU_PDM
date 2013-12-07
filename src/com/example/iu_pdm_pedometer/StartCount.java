@@ -4,12 +4,14 @@ import java.util.Date;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.Service;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -36,6 +38,7 @@ public class StartCount extends Activity implements SensorEventListener {
 	private int next_interval; 
 	private int prevStep_time;
 	private boolean walking = false; 
+	//private Intent intent_service = new Intent(this, StartCountService.class);
 	
 	
 	public int getValid_time() {
@@ -265,14 +268,33 @@ public class StartCount extends Activity implements SensorEventListener {
 	  protected void onResume() {
 	    super.onResume();
 	    mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+	    //stopService(intent_service);
+	    //Get data back
 	  }
 
 	  @Override
 	  protected void onPause() {
-		  Intent intent = new Intent(this, StartCountService.class);
-		  startService(intent);
-		  super.onPause();
-		  mSensorManager.unregisterListener(this);
+		  Intent intent_service = new Intent(this, StartCountService.class);
+		  float [] data = new float[11];
+			data[0] = prev_step;
+			data[1] = nsteps; 
+			data[2] = valid_steps; 
+			data[3] = valid_time;  
+			data[4] = interval; 
+			data[5] = initial_time; 
+			data[6] = next_time; 
+			data[7] = initial_interval; 
+			data[8] = next_interval; 
+			data[9] = prevStep_time;
+			if (walking)
+				data[10] = 1;
+			else
+				data[10] = 0;
+			intent_service.putExtra("DATA", data);
+			ComponentName s = startService(intent_service);
+			
+			super.onPause();
+			mSensorManager.unregisterListener(this);
 	  }
 
 }

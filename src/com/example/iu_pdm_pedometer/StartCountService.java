@@ -44,8 +44,25 @@ public class StartCountService extends Service implements SensorEventListener{
 	    
 	    setInitial_time(getTime()); 
 	    setInitial_interval(getTime()); 
-	    
-		mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+	    float [] data = intent.getFloatArrayExtra("DATA");
+			prev_step = data[0];
+			nsteps = (int) data[1];
+			valid_steps = (int) data[2];
+			valid_time = (int) data[3]; 
+			interval = (int) data[4];
+			initial_time = (int) data[5];
+			next_time = (int) data[6];
+			initial_interval = (int) data[7];
+			next_interval = (int) data[8];
+			prevStep_time = (int) data[9];
+			
+			if (data[10] > 0)
+				walking = true;
+			else
+				walking = false;
+			
+		mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
+		
 		return START_NOT_STICKY;
 	}
 	
@@ -155,7 +172,6 @@ public class StartCountService extends Service implements SensorEventListener{
 	
 	protected void onHandleIntent(Intent intent) {
 		// TODO Auto-generated method stub
-		System.out.println("Hello!!!!!!!!!!!!!!");
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 	    mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	}
