@@ -13,6 +13,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.TextView;
@@ -20,6 +21,9 @@ import android.widget.TextView;
 public class StartCountService extends Service implements SensorEventListener{
 	public static final int THRESHOLD_TIME = 20; 
 	public static final int THRESHOLD_TIME_WALKING = 600; // ten minutes	
+	public static final String BROADCAST_ACTION = "com.example.iu_pdm_pedometer.bc";
+	private final Handler handler = new Handler();
+	Intent intent; 
 	private SensorManager mSensorManager;
 	private Sensor mAcc;
 	private float prev_step;
@@ -35,8 +39,43 @@ public class StartCountService extends Service implements SensorEventListener{
 	private int prevStep_time;
 	private boolean walking = false; 
 	
+    @Override
+    public void onCreate() {
+            super.onCreate();
 
-	public int onStartCommand(Intent intent, int flags, int startId) {
+            intent = new Intent(BROADCAST_ACTION);        
+    }
+    private Runnable sendUpdatesToUI = new Runnable() {
+    	public void run() {
+    		DisplayLoggingInfo();                    
+    		handler.postDelayed(this, 1000); // 1 seconds
+    	}
+    };  
+    private void DisplayLoggingInfo() {
+    	  float [] data = new float[11];
+			data[0] = prev_step;
+			data[1] = nsteps; 
+			data[2] = valid_steps; 
+			data[3] = valid_time;  
+			data[4] = interval; 
+			data[5] = initial_time; 
+			data[6] = next_time; 
+			data[7] = initial_interval; 
+			data[8] = next_interval; 
+			data[9] = prevStep_time;
+			if (walking)
+				data[10] = 1;
+			else
+				data[10] = 0;
+			intent.putExtra("DATA", data);
+    	sendBroadcast(intent);
+    }
+    @Override
+    public void onDestroy() {                
+    handler.removeCallbacks(sendUpdatesToUI);                
+            super.onDestroy();
+    }    
+    public int onStartCommand(Intent intent, int flags, int startId) {
 		super.onStartCommand( intent, flags, startId );
 
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -62,7 +101,7 @@ public class StartCountService extends Service implements SensorEventListener{
 				walking = false;
 			
 		mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
-		
+		//mSensorManager.unregisterListener(this);
 		return START_NOT_STICKY;
 	}
 	

@@ -11,9 +11,12 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -24,7 +27,7 @@ public class StartCount extends Activity implements SensorEventListener {
 	
 	public static final int THRESHOLD_TIME = 20; 
 	public static final int THRESHOLD_TIME_WALKING = 600; // ten minutes	
-	private SensorManager mSensorManager;
+	private SensorManager mSensorManager=null;
 	private Sensor mAcc;
 	private float prev_step;
 	private int nsteps = 0; 
@@ -38,12 +41,46 @@ public class StartCount extends Activity implements SensorEventListener {
 	private int next_interval; 
 	private int prevStep_time;
 	private boolean walking = false; 
-	//private Intent intent_service = new Intent(this, StartCountService.class);
+	private Intent intent_service;
 	
-	
-	public int getValid_time() {
-		return valid_time;
-	}
+	  private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+	        @Override
+	        public void onReceive(Context context, Intent intent) {
+	        	updateData(intent);       
+	        }
+
+
+	  };    
+	  private void updateData(Intent intent) {
+		  float [] data = intent.getFloatArrayExtra("DATA");
+		  prev_step = data[0];
+		  nsteps = (int) data[1];
+		  valid_steps = (int) data[2];
+		  valid_time = (int) data[3]; 
+		  interval = (int) data[4];
+		  initial_time = (int) data[5];
+		  next_time = (int) data[6];
+		  initial_interval = (int) data[7];
+		  next_interval = (int) data[8];
+		  prevStep_time = (int) data[9];
+
+		  if (data[10] > 0)
+			  walking = true;
+		  else
+			  walking = false;
+
+			TextView ns = (TextView) findViewById(R.id.step_count);
+			TextView extra = (TextView) findViewById(R.id.some_info);
+			ns.setText("Steps: " + nsteps);
+			ns.setTextSize(40);
+			extra.setText("Time walked: " + (getNext_time() - getInitial_interval() )/60 + " minutes"   
+			+ "\nEffective time walked: " + getValid_time()/60 + " minutes" +
+					"\nIntervals completed: "+getValid_time()/600 + "/" + getInterval());
+			extra.setTextSize(25); 
+	  }
+	  public int getValid_time() {
+		  return valid_time;
+	  }
 
 	public void setValid_time(int valid_time) {
 		this.valid_time = valid_time;
@@ -141,8 +178,9 @@ public class StartCount extends Activity implements SensorEventListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_start_count);
+		intent_service = new Intent(this, StartCountService.class);
 		//BAD SOLUTION FOR AVOID SERVICE 
-		 getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		 //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		// Show the Up button in the action bar.
 		Intent i = getIntent();
 		int [] time = i.getIntArrayExtra(DisplayUserData.TOPTIME);
@@ -267,14 +305,15 @@ public class StartCount extends Activity implements SensorEventListener {
 	  @Override
 	  protected void onResume() {
 	    super.onResume();
-	    mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+	   // if (mSensorManager == null)
+	    	mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
 	    //stopService(intent_service);
 	    //Get data back
 	  }
 
 	  @Override
 	  protected void onPause() {
-		  Intent intent_service = new Intent(this, StartCountService.class);
+		  
 		  float [] data = new float[11];
 			data[0] = prev_step;
 			data[1] = nsteps; 
@@ -291,10 +330,12 @@ public class StartCount extends Activity implements SensorEventListener {
 			else
 				data[10] = 0;
 			intent_service.putExtra("DATA", data);
-			ComponentName s = startService(intent_service);
-			
+			//startService(intent_service);
+			//registerReceiver(broadcastReceiver, new IntentFilter(StartCountService.BROADCAST_ACTION));
+			mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
 			super.onPause();
-			mSensorManager.unregisterListener(this);
+			// If I comment this line, the app still working on second plane
+			//mSensorManager.unregisterListener(this);
 	  }
 
 }
