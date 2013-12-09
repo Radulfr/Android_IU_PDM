@@ -12,5 +12,7 @@
     <string name="pick_top_time">Save hour and start</string>
     <string name="title_activity_start_count">StartCount</string>
     <string name="initial">0</string>
+    <string name="stop_alarm">One hour left!</string>
+    <string name="title_activity_alarm_receiver">AlarmReceiverActivity</string>
 
 </resources>

@@ -33,15 +33,22 @@
         <activity
             android:name="com.example.iu_pdm_pedometer.StartCount"
             android:label="@string/title_activity_start_count"
-            android:parentActivityName="com.example.iu_pdm_pedometer.DisplayUserData" 
-            android:screenOrientation="landscape">
+            android:parentActivityName="com.example.iu_pdm_pedometer.DisplayUserData"
+            android:screenOrientation="landscape" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.iu_pdm_pedometer.DisplayUserData" />
         </activity>
+        <activity android:name="com.nerdwin15.demo.alarmdemo.AlarmReceiverActivity" />
+
         <service
-            android:name=".StartCountService"
+            android:name="com.example.iu_pdm_pedometer.StartCountService"
             android:exported="false" />
+
+        <activity
+            android:name="com.example.iu_pdm_pedometer.AlarmReceiverActivity"
+            android:label="@string/title_activity_alarm_receiver" >
+        </activity>
     </application>
 
 </manifest>

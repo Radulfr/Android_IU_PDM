@@ -1,9 +1,13 @@
 package com.example.iu_pdm_pedometer;
 
+import java.util.Calendar;
 import java.util.Date;
+
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -195,6 +199,24 @@ public class StartCount extends Activity implements SensorEventListener {
 		ns.setText("Steps: " + nsteps);
 		ns.setTextSize(40);
 		
+        Calendar cal = Calendar.getInstance();
+        System.out.println(cal.HOUR_OF_DAY + " : " + cal.MINUTE);
+        //cal.add(Calendar.SECOND, ((time[2] -2) - cal.HOUR_OF_DAY)*3600);
+        
+        cal.set(cal.HOUR_OF_DAY, time[2]-1);
+        cal.set(cal.MINUTE, time[1]);
+        
+        System.out.println("HSeconds: " + ((time[2] -1) - cal.HOUR_OF_DAY)*3600 + " MSeconds: " +(time[1] - cal.MINUTE)*60) ;
+        
+        Intent intent = new Intent(this, AlarmReceiverActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this,
+            12345, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        AlarmManager am = 
+            (AlarmManager)getSystemService(Activity.ALARM_SERVICE);
+        am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
+                pendingIntent);
+        
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 	    mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	    
