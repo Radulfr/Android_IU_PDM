@@ -3,7 +3,9 @@ package com.example.iu_pdm_pedometer;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,12 +20,20 @@ import android.widget.TimePicker;
 
 public class DisplayUserData extends Activity {
 	public final static String TOPTIME = "com.example.iu_pdm_pedometer.TOPTIME";
+	public final static String WEIGHT = "com.example.iu_pdm_pedometer.WEIGHT";
 	private int time_training = 30;
-	public final static int TIME_TRAINING_INDEX = 6;
+	public final static int TIME_HOUR_INDEX = 0;
+	public final static int TIME_MINUTE_INDEX = 1;
+	public final static int TIME_TRAINING_INDEX = 3;
+	float weight;
+
+
+
 	@SuppressLint("NewApi")
 
 	private TextView tvDisplayTime;
 	static final int TIME_DIALOG_ID = 999;
+	public static final int NEW_WEIGHT_INDEX = 4;
 	@SuppressLint("NewApi")
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -38,7 +48,12 @@ public class DisplayUserData extends Activity {
 		float[] data = i.getFloatArrayExtra(MainActivity.THE_DATA);
 		float imc = data[MainActivity.WEIGHT_INDEX]/((data[MainActivity.HEIGHT_INDEX]/100)*(data[MainActivity.HEIGHT_INDEX]/100)); 
 		String message="";
-		 
+		weight = data[MainActivity.WEIGHT_INDEX];
+		SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		editor.putFloat(getString(R.string.new_weight), data[MainActivity.WEIGHT_INDEX]);
+		editor.commit();
+
 		if (imc < 18.5)
 			message = "under your better weight";
 		else if( imc >= 18.5 && imc < 25)
@@ -56,6 +71,7 @@ public class DisplayUserData extends Activity {
 				"\n\nYou are probably "+message +
 				"\n\nTraining time estimated: " + time_training + " minutes/day"+
 				"\nCan you select your top time?"); 
+		tv.setTextSize(15);
 		//setContentView(tv); 
 		// Show the Up button in the action bar.
 		setupActionBar();
@@ -70,16 +86,15 @@ public class DisplayUserData extends Activity {
 		// Set the correct date here
 		top_time.setToNow();
 		top_time.set(Time.SECOND, minute, hour, Time.MONTH_DAY, Time.MONTH, Time.YEAR);
-		int [] time = new int[7];
-		time[0] = Time.SECOND;
-		time[1] = top_time.minute;	
-		time[2] = top_time.hour;
-		time[3] = Time.MONTH_DAY;
-		time[4] = Time.MONTH;
-		time[5] = Time.YEAR;
+		int [] time = new int[4];
 		
+		time[TIME_HOUR_INDEX] = top_time.hour;
+		time[TIME_MINUTE_INDEX] = top_time.minute;
 		time[TIME_TRAINING_INDEX] = time_training;
-		intent.putExtra(TOPTIME, time);								
+		
+
+		intent.putExtra(TOPTIME, time);		
+		intent.putExtra(WEIGHT, weight);
 		System.out.println("theTime = "+ top_time.hour + ":" + top_time.minute);
 		startActivity(intent);
 		// NEW ------------------------------------------

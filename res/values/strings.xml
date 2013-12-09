@@ -14,5 +14,8 @@
     <string name="initial">0</string>
     <string name="stop_alarm">One hour left!</string>
     <string name="title_activity_alarm_receiver">AlarmReceiverActivity</string>
+    <string name="last_steps">Last N steps</string>
+    <string name="last_weight">Last weight</string>
+    <string name="new_weight">current weight</string>
 
 </resources>

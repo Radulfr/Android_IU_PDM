@@ -1,10 +1,15 @@
 package com.example.iu_pdm_pedometer;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 
 import android.os.Bundle;
+import android.os.Environment;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -13,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
@@ -21,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -47,13 +54,81 @@ public class StartCount extends Activity implements SensorEventListener {
 	private boolean walking = false; 
 	private Intent intent_service;
 	
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_start_count);
+		intent_service = new Intent(this, StartCountService.class);
+		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+		Intent i = getIntent();
+		int [] time = i.getIntArrayExtra(DisplayUserData.TOPTIME);
+		String balance = "good";
+		setInterval(time[DisplayUserData.TIME_TRAINING_INDEX]/10); 
+		
+		// SET ALARM -------------------------------------------------------------
+        Calendar cal = Calendar.getInstance();
+        cal.set(cal.HOUR_OF_DAY, time[DisplayUserData.TIME_HOUR_INDEX]-1);
+        cal.set(cal.MINUTE, time[DisplayUserData.TIME_MINUTE_INDEX]);
+        
+        Intent intent = new Intent(this, AlarmReceiverActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this,
+            12345, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        AlarmManager am = 
+            (AlarmManager)getSystemService(Activity.ALARM_SERVICE);
+        am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
+                pendingIntent);
+        //SET ALARM END ---------------------------------------------------------------------
+        // LOAD PREV DATA---------------------------------------------------------------------
+		SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+
+		float lw = sharedPref.getFloat(getString(R.string.last_weight), (float)0.0);
+		float cw = i.getFloatExtra(DisplayUserData.WEIGHT, (float) 0.0);
+		
+		editor.putFloat(getString(R.string.last_weight), cw);
+		editor.commit();
+		
+		if(cw > lw)
+			balance = "Bad balance. You must walk more!";
+		else if (lw > cw)
+			balance = "Good balance! Congratulations! Go on!";
+		else
+			balance = "Keep working!";
+		// LOAD PREV DATA END---------------------------------------------------------------------
+		// INFO TOAST-----------------------------------------------------------------
+		Context context = getApplicationContext();
+		CharSequence text2 = "Please put your phone HORIZONTAL on your BELT";
+		int duration = Toast.LENGTH_LONG;
+		Toast toast = Toast.makeText(context, text2, duration);
+		toast.show();
+		// INFO TOAST END ----------------------------------------------------------------
+		// UI MESSAGES-------------------------------------------------------------------------
+		TextView tv = (TextView) findViewById(R.id.timeset);
+		
+		TextView ns = (TextView) findViewById(R.id.step_count);
+		ns.setText("Steps: " + nsteps);
+		ns.setTextSize(40);
+		CharSequence text = "Your previous weight was: " +lw +"\nYour current weight is: " +cw + "\n" + balance ;
+		tv.setText(text + "\nTop hour: " + time[DisplayUserData.TIME_HOUR_INDEX]+":"+time[DisplayUserData.TIME_MINUTE_INDEX] +
+				" in " + getInterval() +
+				" intervals máx");
+		tv.setTextSize(15);
+		// UI MESSAGES END-------------------------------------------------------------------------
+		
+		setInitial_time(getTime()); 
+	    setInitial_interval(getTime()); 
+		setupActionBar();
+	}
+	
 	  private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 	        @Override
 	        public void onReceive(Context context, Intent intent) {
 	        	updateData(intent);       
 	        }
-
-
 	  };    
 	  private void updateData(Intent intent) {
 		  float [] data = intent.getFloatArrayExtra("DATA");
@@ -178,52 +253,6 @@ public class StartCount extends Activity implements SensorEventListener {
 		this.interval = interval;
 	}
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_start_count);
-		intent_service = new Intent(this, StartCountService.class);
-		//BAD SOLUTION FOR AVOID SERVICE 
-		 //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		// Show the Up button in the action bar.
-		Intent i = getIntent();
-		int [] time = i.getIntArrayExtra(DisplayUserData.TOPTIME);
-		
-		setInterval(time[DisplayUserData.TIME_TRAINING_INDEX]/10); 
-		
-		TextView tv = (TextView) findViewById(R.id.timeset);
-		tv.setText("Top hour: " + time[2]+":"+time[1] +" in " + getInterval() +
-				" intervals máx\n Please put your phone horizontal on your belt. ");
-		
-		TextView ns = (TextView) findViewById(R.id.step_count);
-		ns.setText("Steps: " + nsteps);
-		ns.setTextSize(40);
-		
-        Calendar cal = Calendar.getInstance();
-        System.out.println(cal.HOUR_OF_DAY + " : " + cal.MINUTE);
-        //cal.add(Calendar.SECOND, ((time[2] -2) - cal.HOUR_OF_DAY)*3600);
-        
-        cal.set(cal.HOUR_OF_DAY, time[2]-1);
-        cal.set(cal.MINUTE, time[1]);
-        
-        System.out.println("HSeconds: " + ((time[2] -1) - cal.HOUR_OF_DAY)*3600 + " MSeconds: " +(time[1] - cal.MINUTE)*60) ;
-        
-        Intent intent = new Intent(this, AlarmReceiverActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-            12345, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-        AlarmManager am = 
-            (AlarmManager)getSystemService(Activity.ALARM_SERVICE);
-        am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
-                pendingIntent);
-        
-		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-	    mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-	    
-	    setInitial_time(getTime()); 
-	    setInitial_interval(getTime()); 
-		setupActionBar();
-	}
 	public int getTime(){
 		return (int) (new Date().getTime()/1000);
 	}
@@ -333,6 +362,14 @@ public class StartCount extends Activity implements SensorEventListener {
 	    //Get data back
 	  }
 
+	  protected void saveData(float weight, int n_steps){
+		  SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+		  SharedPreferences.Editor editor = sharedPref.edit();
+		  editor.putFloat(getString(R.string.last_weight), weight);
+		  editor.putFloat(getString(R.string.last_steps), n_steps);
+		  editor.commit();
+
+	  }
 	  @Override
 	  protected void onPause() {
 		  
