@@ -18,5 +18,8 @@
     <string name="last_weight">Last weight</string>
     <string name="new_weight">current weight</string>
     <string name="last_distance">last distance</string>
+    <string name="main_w">Main weight</string>
+    <string name="main_l">Main step</string>
+    <string name="main_h">Main height</string>
 
 </resources>

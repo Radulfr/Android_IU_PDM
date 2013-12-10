@@ -3,7 +3,9 @@ package com.example.iu_pdm_pedometer;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
@@ -28,6 +30,8 @@ public class MainActivity extends Activity {
 	}
 	
 	public void sendData(View view){
+		SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
 		Intent i = new Intent(this, DisplayUserData.class); 
 		EditText height = (EditText) findViewById(R.id.Height);
 		EditText weight = (EditText) findViewById(R.id.Weight);
@@ -40,6 +44,12 @@ public class MainActivity extends Activity {
 		Float l = Float.parseFloat(leg.getText().toString());
 		
 		System.out.println(h + " - " + w + " " + l);
+		
+
+		editor.putFloat(getString(R.string.main_h), h);
+		editor.putFloat(getString(R.string.main_w), w);
+		editor.putFloat(getString(R.string.main_l), l);
+		editor.commit();
 		
 		values[HEIGHT_INDEX] = h; 
 		values[WEIGHT_INDEX] = w;

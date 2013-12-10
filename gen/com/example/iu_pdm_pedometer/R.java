@@ -58,6 +58,9 @@ public final class R {
         public static final int last_steps=0x7f05000d;
         public static final int last_weight=0x7f05000e;
         public static final int leg_longitude_cm=0x7f050005;
+        public static final int main_h=0x7f050013;
+        public static final int main_l=0x7f050012;
+        public static final int main_w=0x7f050011;
         public static final int new_weight=0x7f05000f;
         public static final int pick_top_time=0x7f050008;
         public static final int stop_alarm=0x7f05000b;

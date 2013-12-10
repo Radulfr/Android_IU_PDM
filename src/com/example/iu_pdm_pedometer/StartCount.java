@@ -2,12 +2,17 @@ package com.example.iu_pdm_pedometer;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.app.Activity;
@@ -57,7 +62,7 @@ public class StartCount extends Activity implements SensorEventListener {
 	private boolean lock_valid = true;
 	int total_distance = 0; 
 	float step_longitude = 0;
-	
+	private MediaPlayer mMediaPlayer; 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -111,7 +116,7 @@ public class StartCount extends Activity implements SensorEventListener {
 		// LOAD PREV DATA END---------------------------------------------------------------------
 		// INFO TOAST-----------------------------------------------------------------
 		Context context = getApplicationContext();
-		CharSequence text2 = "Prev distance: " + dist/100 + "m\nPrev steps: " + ps;
+		CharSequence text2 = "Prev distance: " + dist/100 + " m\nPrev steps: " + ps;
 		int duration = Toast.LENGTH_LONG;
 		Toast toast = Toast.makeText(context, text2, duration);
 		toast.show();
@@ -122,7 +127,7 @@ public class StartCount extends Activity implements SensorEventListener {
 		TextView ns = (TextView) findViewById(R.id.step_count);
 		ns.setText("Steps: " + nsteps);
 		ns.setTextSize(40);
-		CharSequence text = "Your previous weight was: " +lw +"\nYour current weight is: " +cw + "\n" + balance ;
+		CharSequence text = "Prev. weight: " +lw +" kg\nCurrent weight: " +cw + " kg\n" + balance ;
 		tv.setText(text);
 		tv.setTextSize(20);
 		// UI MESSAGES END-------------------------------------------------------------------------
@@ -346,9 +351,15 @@ public class StartCount extends Activity implements SensorEventListener {
 						}
 						setValid_time((getNext_time() -getInitial_time()) + getValid_time());
 						setValid_steps(getValid_steps()+1);
-						if ((getValid_time() >= getInterval()*THRESHOLD_TIME_WALKING) & !finish){
+						if ((getValid_time() >= getInterval()*THRESHOLD_TIME_WALKING) & (finish==false)){
 							System.out.println("YOU HAVE FINISHED!");
-							// DO SOMETHING MORE (BEEP!)
+							playSound(this, getAlarmUri());
+							finish=true;
+							Context context = getApplicationContext();
+							CharSequence text2 = "CONGRATULATIONS! YOU'VE FINISH!" ;
+							int duration = Toast.LENGTH_LONG;
+							Toast toast = Toast.makeText(context, text2, duration);
+							toast.show();
 						}
 					}
 					setInitial_time(getTime());
@@ -361,7 +372,7 @@ public class StartCount extends Activity implements SensorEventListener {
 			ns.setTextSize(30);
 			extra.setText("Time walked: " + (getNext_time() - getInitial_interval() )/60 + " minutes"   
 					+ "\nEffective time walked: " + getValid_time()/60 + " minutes" 
-					+ "\nTotal/Eff. dist:      "  + total_distance/100 + "/" + getValid_steps()*step_longitude/100 + " m"
+					+ "\nTotal/Eff. dist:      "  + (int) (total_distance/100) + "/" + (int) (getValid_steps()*step_longitude/100) + " m"
 					+ "\nIntervals: "+getValid_time()/60 + "/" + getInterval());
 			extra.setTextSize(20); 
 			System.out.println("Step! : " + step_sensor + " ----> " + getNsteps() +
@@ -416,5 +427,36 @@ public class StartCount extends Activity implements SensorEventListener {
 		// If I comment this line, the app still working on second plane
 		//mSensorManager.unregisterListener(this);
 	}
+    private void playSound(Context context, Uri alert) {
+        mMediaPlayer = new MediaPlayer();
+        try {
+            mMediaPlayer.setDataSource(context, alert);
+            final AudioManager audioManager = (AudioManager) context
+                    .getSystemService(Context.AUDIO_SERVICE);
+            if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
+                mMediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+                mMediaPlayer.prepare();
+                mMediaPlayer.start();
+            }
+        } catch (IOException e) {
+            System.out.println("OOPS");
+        }
+    }
+
+    //Get an alarm sound. Try for an alarm. If none set, try notification, 
+    //Otherwise, ringtone.
+    private Uri getAlarmUri() {
+        Uri alert = RingtoneManager
+                .getDefaultUri(RingtoneManager.TYPE_ALARM);
+        if (alert == null) {
+            alert = RingtoneManager
+                    .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            if (alert == null) {
+                alert = RingtoneManager
+                        .getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+            }
+        }
+        return alert;
+    }	
 
 }
