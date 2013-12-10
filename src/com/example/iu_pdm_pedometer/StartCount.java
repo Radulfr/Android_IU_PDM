@@ -37,7 +37,7 @@ import android.os.Build;
 public class StartCount extends Activity implements SensorEventListener {
 	
 	public static final int THRESHOLD_TIME = 20; 
-	public static final int THRESHOLD_TIME_WALKING = 600; // ten minutes	
+	public static final int THRESHOLD_TIME_WALKING = 60; // ten minutes	
 	private SensorManager mSensorManager=null;
 	private Sensor mAcc;
 	private float prev_step;
@@ -50,9 +50,11 @@ public class StartCount extends Activity implements SensorEventListener {
 	private int next_time; 
 	private int initial_interval; 
 	private int next_interval; 
-	private int prevStep_time;
+	private int prevStep_time =0;
 	private boolean walking = false; 
 	private Intent intent_service;
+	private boolean finish = false; 
+	private boolean lock_valid = true;
 	
 
 	@Override
@@ -297,104 +299,113 @@ public class StartCount extends Activity implements SensorEventListener {
 		
 	}
 
-	  @Override
-	  public final void onSensorChanged(SensorEvent event) {
-	    float step_sensor = event.values[0];
-	    //float ac2 = event.values[1];
-	    //float ac3 = event.values[2];
-	    if (step_sensor >= 12.0 && prev_step < 12.0){
-	    	setNext_time(getTime());
-	    	
-	    	if (!isWalking()){
-	    		if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){ 
-	    			//maybe not neccessary
-	    			setNsteps(0); 
-	    			setInitial_time(getTime()); 
-	    		}
-	    		else{
-	    			setNsteps(getNsteps()+1);
-	    			setInitial_interval(getTime()); 
-	    			setWalking(true); 
-	    		}
-	    	}
-	    	else{
-	    		if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){
-	    			setNsteps(0); 
-	    			setInitial_time(getTime());
-	    			setNext_time(getTime());
+	@Override
+	public final void onSensorChanged(SensorEvent event) {
+		float step_sensor = event.values[0];
 
-	    			setWalking(false); 
-	    		}
-	    		else{
-	    			setNsteps(getNsteps()+1); 
-	    			setInitial_time(getTime());
-	    			if ((getNext_time() - getInitial_interval()) >= THRESHOLD_TIME_WALKING){
-	    				setValid_time((getNext_time() - getInitial_interval()) + getValid_time());
-	    				if (getValid_time() >= getInterval()*THRESHOLD_TIME_WALKING)
-	    					System.out.println("YOU HAVE FINISHED!");
-	    				else
-	    					System.out.println("Interval reached: " + (getValid_time()/600));
-	    			}
-	    		}
-	    	}
+		if (step_sensor >= 12.0 && prev_step < 12.0){
+			setNext_time(getTime());
+
+			if (!isWalking()){
+				lock_valid = true;
+				if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){ 
+					//maybe not neccessary
+					setNsteps(0); 
+					setInitial_time(getTime()); 
+				}
+				else{
+					setNsteps(getNsteps()+1);
+					setInitial_interval(getTime()); 
+					setWalking(true); 
+				}
+			}
+			else{
+				if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){
+					setNsteps(0); 
+					setInitial_time(getTime());
+					setNext_time(getTime());
+
+					setWalking(false); 
+				}
+				else{
+					setNsteps(getNsteps()+1); 
+					
+					if ((getNext_time() - getInitial_interval()) >= THRESHOLD_TIME_WALKING){
+						
+						if (lock_valid == true){
+							lock_valid = false;
+							setValid_time(getNext_time() - getInitial_interval()  + getValid_time());
+							setValid_steps(getValid_steps() + getNsteps());
+						}
+						setValid_time((getNext_time() -getInitial_time()) + getValid_time());
+						setValid_steps(getValid_steps()+1);
+						if ((getValid_time() >= getInterval()*THRESHOLD_TIME_WALKING) & !finish){
+							System.out.println("YOU HAVE FINISHED!");
+							// DO SOMETHING MORE (BEEP!)
+						}
+					}
+					setInitial_time(getTime());
+				}
+			}
+
 			TextView ns = (TextView) findViewById(R.id.step_count);
 			TextView extra = (TextView) findViewById(R.id.some_info);
-			ns.setText("Steps: " + nsteps);
-			ns.setTextSize(40);
+			ns.setText("Steps: " + getNsteps() + " (Valid: " +getValid_steps()+")");
+			ns.setTextSize(30);
 			extra.setText("Time walked: " + (getNext_time() - getInitial_interval() )/60 + " minutes"   
-			+ "\nEffective time walked: " + getValid_time()/60 + " minutes" +
-					"\nIntervals completed: "+getValid_time()/600 + "/" + getInterval());
+					+ "\nEffective time walked: " + getValid_time()/60 + " minutes" +
+					"\nIntervals completed: "+getValid_time()/60 + "/" + getInterval());
 			extra.setTextSize(25); 
-	    	System.out.println("Step! : " + step_sensor + " ----> " + getNsteps() +
-	    			"\nEffective time walked: " + getValid_time()/60 + " minutes");
-	    }
-	    	prev_step = step_sensor; 
-	    setPrevStep_time(getTime()); 
+			System.out.println("Step! : " + step_sensor + " ----> " + getNsteps() +
+					"\nEffective time walked: " + getValid_time()/60 + " minutes");
+		}
+		prev_step = step_sensor; 
+		setPrevStep_time(getTime()); 
 
-	  }
+	}
 
-	  @Override
-	  protected void onResume() {
-	    super.onResume();
-	   // if (mSensorManager == null)
-	    	mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
-	    //stopService(intent_service);
-	    //Get data back
-	  }
+	@Override
+	protected void onResume() {
+		super.onResume();
+		// if (mSensorManager == null)
+		mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+		//stopService(intent_service);
+		//Get data back
+	}
 
-	  protected void saveData(float weight, int n_steps){
-		  SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
-		  SharedPreferences.Editor editor = sharedPref.edit();
-		  editor.putFloat(getString(R.string.last_weight), weight);
-		  editor.putFloat(getString(R.string.last_steps), n_steps);
-		  editor.commit();
+	protected void saveData(float weight, int n_steps){
+		SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		editor.putFloat(getString(R.string.last_weight), weight);
+		editor.putFloat(getString(R.string.last_steps), n_steps);
+		editor.commit();
 
-	  }
-	  @Override
-	  protected void onPause() {
-		  
-		  float [] data = new float[11];
-			data[0] = prev_step;
-			data[1] = nsteps; 
-			data[2] = valid_steps; 
-			data[3] = valid_time;  
-			data[4] = interval; 
-			data[5] = initial_time; 
-			data[6] = next_time; 
-			data[7] = initial_interval; 
-			data[8] = next_interval; 
-			data[9] = prevStep_time;
-			if (walking)
-				data[10] = 1;
-			else
-				data[10] = 0;
-			intent_service.putExtra("DATA", data);
-			//startService(intent_service);
-			//registerReceiver(broadcastReceiver, new IntentFilter(StartCountService.BROADCAST_ACTION));
-			mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
-			super.onPause();
-			// If I comment this line, the app still working on second plane
-			//mSensorManager.unregisterListener(this);
-	  }
+	}
+	@Override
+	protected void onPause() {
+
+		float [] data = new float[11];
+		data[0] = prev_step;
+		data[1] = nsteps; 
+		data[2] = valid_steps; 
+		data[3] = valid_time;  
+		data[4] = interval; 
+		data[5] = initial_time; 
+		data[6] = next_time; 
+		data[7] = initial_interval; 
+		data[8] = next_interval; 
+		data[9] = prevStep_time;
+		if (walking)
+			data[10] = 1;
+		else
+			data[10] = 0;
+		intent_service.putExtra("DATA", data);
+		//startService(intent_service);
+		//registerReceiver(broadcastReceiver, new IntentFilter(StartCountService.BROADCAST_ACTION));
+		mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
+		super.onPause();
+		// If I comment this line, the app still working on second plane
+		//mSensorManager.unregisterListener(this);
+	}
 
 }

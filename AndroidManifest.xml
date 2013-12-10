@@ -48,6 +48,7 @@
 
         <activity
             android:name="com.example.iu_pdm_pedometer.AlarmReceiverActivity"
+            android:screenOrientation="landscape"
             android:label="@string/title_activity_alarm_receiver" >
         </activity>
     </application>
