@@ -21,11 +21,13 @@ import android.widget.TimePicker;
 public class DisplayUserData extends Activity {
 	public final static String TOPTIME = "com.example.iu_pdm_pedometer.TOPTIME";
 	public final static String WEIGHT = "com.example.iu_pdm_pedometer.WEIGHT";
+	public final static String STEP = "com.example.iu_pdm_pedometer.STEP";
 	private int time_training = 30;
 	public final static int TIME_HOUR_INDEX = 0;
 	public final static int TIME_MINUTE_INDEX = 1;
 	public final static int TIME_TRAINING_INDEX = 3;
 	float weight;
+	int step;
 
 
 
@@ -49,6 +51,8 @@ public class DisplayUserData extends Activity {
 		float imc = data[MainActivity.WEIGHT_INDEX]/((data[MainActivity.HEIGHT_INDEX]/100)*(data[MainActivity.HEIGHT_INDEX]/100)); 
 		String message="";
 		weight = data[MainActivity.WEIGHT_INDEX];
+		step = (int) data[MainActivity.LEGSIZE_INDEX];
+		
 		SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = sharedPref.edit();
 		editor.putFloat(getString(R.string.new_weight), data[MainActivity.WEIGHT_INDEX]);
@@ -95,6 +99,7 @@ public class DisplayUserData extends Activity {
 
 		intent.putExtra(TOPTIME, time);		
 		intent.putExtra(WEIGHT, weight);
+		intent.putExtra(STEP, step);
 		System.out.println("theTime = "+ top_time.hour + ":" + top_time.minute);
 		startActivity(intent);
 		// NEW ------------------------------------------

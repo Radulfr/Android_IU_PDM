@@ -55,6 +55,8 @@ public class StartCount extends Activity implements SensorEventListener {
 	private Intent intent_service;
 	private boolean finish = false; 
 	private boolean lock_valid = true;
+	int total_distance = 0; 
+	float step_longitude = 0;
 	
 
 	@Override
@@ -91,6 +93,12 @@ public class StartCount extends Activity implements SensorEventListener {
 		float lw = sharedPref.getFloat(getString(R.string.last_weight), (float)0.0);
 		float cw = i.getFloatExtra(DisplayUserData.WEIGHT, (float) 0.0);
 		
+		int dist = sharedPref.getInt(getString(R.string.last_distance), 0);
+		int ps = sharedPref.getInt(getString(R.string.last_steps), 0);
+		
+		step_longitude = i.getIntExtra(DisplayUserData.STEP, 1);
+		//longitud
+		
 		editor.putFloat(getString(R.string.last_weight), cw);
 		editor.commit();
 		
@@ -103,7 +111,7 @@ public class StartCount extends Activity implements SensorEventListener {
 		// LOAD PREV DATA END---------------------------------------------------------------------
 		// INFO TOAST-----------------------------------------------------------------
 		Context context = getApplicationContext();
-		CharSequence text2 = "Please put your phone HORIZONTAL on your BELT";
+		CharSequence text2 = "Prev distance: " + dist/100 + "m\nPrev steps: " + ps;
 		int duration = Toast.LENGTH_LONG;
 		Toast toast = Toast.makeText(context, text2, duration);
 		toast.show();
@@ -115,10 +123,8 @@ public class StartCount extends Activity implements SensorEventListener {
 		ns.setText("Steps: " + nsteps);
 		ns.setTextSize(40);
 		CharSequence text = "Your previous weight was: " +lw +"\nYour current weight is: " +cw + "\n" + balance ;
-		tv.setText(text + "\nTop hour: " + time[DisplayUserData.TIME_HOUR_INDEX]+":"+time[DisplayUserData.TIME_MINUTE_INDEX] +
-				" in " + getInterval() +
-				" intervals máx");
-		tv.setTextSize(15);
+		tv.setText(text);
+		tv.setTextSize(20);
 		// UI MESSAGES END-------------------------------------------------------------------------
 		
 		setInitial_time(getTime()); 
@@ -305,6 +311,7 @@ public class StartCount extends Activity implements SensorEventListener {
 
 		if (step_sensor >= 12.0 && prev_step < 12.0){
 			setNext_time(getTime());
+			total_distance += step_longitude; 
 
 			if (!isWalking()){
 				lock_valid = true;
@@ -335,7 +342,7 @@ public class StartCount extends Activity implements SensorEventListener {
 						if (lock_valid == true){
 							lock_valid = false;
 							setValid_time(getNext_time() - getInitial_interval()  + getValid_time());
-							setValid_steps(getValid_steps() + getNsteps());
+							setValid_steps(getValid_steps() + getNsteps() - 10);
 						}
 						setValid_time((getNext_time() -getInitial_time()) + getValid_time());
 						setValid_steps(getValid_steps()+1);
@@ -353,14 +360,16 @@ public class StartCount extends Activity implements SensorEventListener {
 			ns.setText("Steps: " + getNsteps() + " (Valid: " +getValid_steps()+")");
 			ns.setTextSize(30);
 			extra.setText("Time walked: " + (getNext_time() - getInitial_interval() )/60 + " minutes"   
-					+ "\nEffective time walked: " + getValid_time()/60 + " minutes" +
-					"\nIntervals completed: "+getValid_time()/60 + "/" + getInterval());
-			extra.setTextSize(25); 
+					+ "\nEffective time walked: " + getValid_time()/60 + " minutes" 
+					+ "\nTotal/Eff. dist:      "  + total_distance/100 + "/" + getValid_steps()*step_longitude/100 + " m"
+					+ "\nIntervals: "+getValid_time()/60 + "/" + getInterval());
+			extra.setTextSize(20); 
 			System.out.println("Step! : " + step_sensor + " ----> " + getNsteps() +
 					"\nEffective time walked: " + getValid_time()/60 + " minutes");
 		}
 		prev_step = step_sensor; 
 		setPrevStep_time(getTime()); 
+		saveData(getValid_steps());
 
 	}
 
@@ -373,11 +382,11 @@ public class StartCount extends Activity implements SensorEventListener {
 		//Get data back
 	}
 
-	protected void saveData(float weight, int n_steps){
+	protected void saveData(int n_steps){
 		SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = sharedPref.edit();
-		editor.putFloat(getString(R.string.last_weight), weight);
-		editor.putFloat(getString(R.string.last_steps), n_steps);
+		editor.putInt(getString(R.string.last_steps), n_steps);
+		editor.putInt(getString(R.string.last_distance), total_distance);
 		editor.commit();
 
 	}
