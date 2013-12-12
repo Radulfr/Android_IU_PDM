@@ -71,9 +71,6 @@ public class StartCount extends Activity  {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_start_count);
 		
-
-		
-		
 		intent_service = new Intent(this, StartCountService.class);
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -141,10 +138,27 @@ public class StartCount extends Activity  {
 		receiver = new BroadcastReceiver() {
 	        @Override
 	        public void onReceive(Context context, Intent intent) {
-	            int s = intent.getIntExtra(StartCountService.NOTIF, -1);
-	            TextView ns = (TextView) findViewById(R.id.step_count);
-	            ns.setText("Steps: " + s);
-	    		ns.setTextSize(40);
+	        	int data [] = new int[6];
+	        	String intervals; 
+	        	data = intent.getIntArrayExtra(StartCountService.NOTIF);
+	            //int s = intent.getIntExtra(, -1);
+	        	
+				TextView ns = (TextView) findViewById(R.id.step_count);
+				TextView extra = (TextView) findViewById(R.id.some_info);
+				ns.setText("Steps: " + data[0] + " (Valid: " +data[1]+")");
+				ns.setTextSize(30);
+				
+				if(data[5] == getInterval())
+					intervals = "COMPLETED! WELL DONE!";
+				else
+					intervals = "\nIntervals: "+data[5] + "/" + getInterval();
+				
+				extra.setText("Time walked: " + data[2] + " minutes"   
+						+ "\nEffective time walked: " + data[3] + " minutes" 
+						+ "\nEffective distance:      "  + data[1]*step_longitude/100 + " m"
+						+ intervals);
+				extra.setTextSize(20); 
+				saveData(data[1]);
 	            // do something here.
 	        }
 	    };

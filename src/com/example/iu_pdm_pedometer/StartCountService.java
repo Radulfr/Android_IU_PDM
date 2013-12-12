@@ -53,10 +53,10 @@ public class StartCountService extends Service implements SensorEventListener{
 	LocalBroadcastManager broadcaster;
 	static final public String NOTIF = "com.IU_PDM_PEDOMETER";
 	
-	public void sendResult(int message) {
+	public void sendResult(int [] data) {
 	    Intent intent = new Intent(NOTIF);
-	    if(message >= 0)
-	    	intent.putExtra(NOTIF, message);
+	 
+	    intent.putExtra(NOTIF, data);
 	    broadcaster.sendBroadcast(intent);
 	}
     @Override
@@ -244,10 +244,16 @@ public class StartCountService extends Service implements SensorEventListener{
 	@Override
 	  public final void onSensorChanged(SensorEvent event) {
 		float step_sensor = event.values[0];
+		int	effective_time_walked = 0;
+		int time_walked = 0; 
+		int t_distance = 0; 
+		int t_effective_distance = 0; 
+		int t_intervals = 0; 
+		int data[] = new int [6]; 
 
 		if (step_sensor >= 12.0 && prev_step < 12.0){
 			setNext_time(getTime());
-			total_distance += step_longitude; 
+			total_distance ++; 
 
 			if (!isWalking()){
 				lock_valid = true;
@@ -296,7 +302,11 @@ public class StartCountService extends Service implements SensorEventListener{
 					setInitial_time(getTime());
 				}
 			}
-
+			effective_time_walked = getValid_time()/60;
+			time_walked = (getNext_time() - getInitial_interval())/60; 
+			t_distance = total_distance/100; 
+			//t_effective_distance = getValid_steps()*step_longitude; 
+			t_intervals = getValid_time()/THRESHOLD_TIME_WALKING; 
 			/*TextView ns = (TextView) findViewById(R.id.step_count);
 			TextView extra = (TextView) findViewById(R.id.some_info);
 			ns.setText("Steps: " + getNsteps() + " (Valid: " +getValid_steps()+")");
@@ -308,7 +318,14 @@ public class StartCountService extends Service implements SensorEventListener{
 			extra.setTextSize(20); */
 			System.out.println("Step! : " + step_sensor + " ----> " + getNsteps() +
 					"\nEffective time walked: " + getValid_time()/60 + " minutes");
-			sendResult(getNsteps());
+			
+			data[0] = getNsteps(); 
+			data[1] = getValid_steps(); 
+			data[2] = time_walked; 
+			data[3] = effective_time_walked; 
+			data[4] = t_distance; 
+			data[5] = t_intervals; 
+			sendResult(data);
 		}
 		prev_step = step_sensor; 
 		setPrevStep_time(getTime()); 
