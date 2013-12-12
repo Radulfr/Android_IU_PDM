@@ -1,5 +1,6 @@
 package com.example.iu_pdm_pedometer;
 
+import java.io.IOException;
 import java.util.Date;
 
 
@@ -13,14 +14,20 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class StartCountService extends Service implements SensorEventListener{
 	public static final int THRESHOLD_TIME = 20; 
-	public static final int THRESHOLD_TIME_WALKING = 600; // ten minutes	
+	public static final int THRESHOLD_TIME_WALKING = 60; // ten minutes	
 	public static final String BROADCAST_ACTION = "com.example.iu_pdm_pedometer.bc";
 	private final Handler handler = new Handler();
 	Intent intent; 
@@ -38,11 +45,24 @@ public class StartCountService extends Service implements SensorEventListener{
 	private int next_interval; 
 	private int prevStep_time;
 	private boolean walking = false; 
+	private boolean finish = false; 
+	private boolean lock_valid = true;
+	int total_distance = 0; 
+	float step_longitude = 0;
+	private MediaPlayer mMediaPlayer; 
+	LocalBroadcastManager broadcaster;
+	static final public String NOTIF = "com.IU_PDM_PEDOMETER";
 	
+	public void sendResult(int message) {
+	    Intent intent = new Intent(NOTIF);
+	    if(message >= 0)
+	    	intent.putExtra(NOTIF, message);
+	    broadcaster.sendBroadcast(intent);
+	}
     @Override
     public void onCreate() {
             super.onCreate();
-
+            broadcaster = LocalBroadcastManager.getInstance(this);
             intent = new Intent(BROADCAST_ACTION);        
     }
     private Runnable sendUpdatesToUI = new Runnable() {
@@ -223,62 +243,117 @@ public class StartCountService extends Service implements SensorEventListener{
 
 	@Override
 	  public final void onSensorChanged(SensorEvent event) {
-	    float step_sensor = event.values[0];
-	    //float ac2 = event.values[1];
-	    //float ac3 = event.values[2];
-	    if (step_sensor >= 12.0 && prev_step < 12.0){
-	    	setNext_time(getTime());
-	    	
-	    	if (!isWalking()){
-	    		if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){ 
-	    			//maybe not neccessary
-	    			setNsteps(0); 
-	    			setInitial_time(getTime()); 
-	    		}
-	    		else{
-	    			setNsteps(getNsteps()+1);
-	    			setInitial_interval(getTime()); 
-	    			setWalking(true); 
-	    		}
-	    	}
-	    	else{
-	    		if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){
-	    			setNsteps(0); 
-	    			setInitial_time(getTime());
-	    			setNext_time(getTime());
+		float step_sensor = event.values[0];
 
-	    			setWalking(false); 
-	    		}
-	    		else{
-	    			setNsteps(getNsteps()+1); 
-	    			setInitial_time(getTime());
-	    			if ((getNext_time() - getInitial_interval()) >= THRESHOLD_TIME_WALKING){
-	    				setValid_time((getNext_time() - getInitial_interval()) + getValid_time());
-	    				if (getValid_time() >= getInterval()*THRESHOLD_TIME_WALKING)
-	    					System.out.println("YOU HAVE FINISHED!");
-	    				else
-	    					System.out.println("Interval reached: " + (getValid_time()/600));
-	    			}
-	    		}
-	    	}
-	    	/*
-			TextView ns = (TextView) findViewById(R.id.step_count);
+		if (step_sensor >= 12.0 && prev_step < 12.0){
+			setNext_time(getTime());
+			total_distance += step_longitude; 
+
+			if (!isWalking()){
+				lock_valid = true;
+				if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){ 
+					//maybe not neccessary
+					setNsteps(0); 
+					setInitial_time(getTime()); 
+				}
+				else{
+					setNsteps(getNsteps()+1);
+					setInitial_interval(getTime()); 
+					setWalking(true); 
+				}
+			}
+			else{
+				if((getNext_time() - getInitial_time()) >= THRESHOLD_TIME){
+					setNsteps(0); 
+					setInitial_time(getTime());
+					setNext_time(getTime());
+
+					setWalking(false); 
+				}
+				else{
+					setNsteps(getNsteps()+1); 
+					
+					if ((getNext_time() - getInitial_interval()) >= THRESHOLD_TIME_WALKING){
+						
+						if (lock_valid == true){
+							lock_valid = false;
+							setValid_time(getNext_time() - getInitial_interval()  + getValid_time());
+							setValid_steps(getValid_steps() + getNsteps() - 10);
+						}
+						setValid_time((getNext_time() -getInitial_time()) + getValid_time());
+						setValid_steps(getValid_steps()+1);
+						if ((getValid_time() >= getInterval()*THRESHOLD_TIME_WALKING) & (finish==false)){
+							System.out.println("YOU HAVE FINISHED!");
+							playSound(this, getAlarmUri());
+							finish=true;
+							Context context = getApplicationContext();
+							CharSequence text2 = "CONGRATULATIONS! YOU'VE FINISH!" ;
+							int duration = Toast.LENGTH_LONG;
+							Toast toast = Toast.makeText(context, text2, duration);
+							toast.show();
+						}
+					}
+					setInitial_time(getTime());
+				}
+			}
+
+			/*TextView ns = (TextView) findViewById(R.id.step_count);
 			TextView extra = (TextView) findViewById(R.id.some_info);
-			ns.setText("Steps: " + nsteps);
-			ns.setTextSize(40);
+			ns.setText("Steps: " + getNsteps() + " (Valid: " +getValid_steps()+")");
+			ns.setTextSize(30);
 			extra.setText("Time walked: " + (getNext_time() - getInitial_interval() )/60 + " minutes"   
-			+ "\nEffective time walked: " + getValid_time()/60 + " minutes" +
-					"\nIntervals completed: "+getValid_time()/600 + "/" + getInterval());
-			extra.setTextSize(25);
-			*/ 
-	    	System.out.println("Step! : " + step_sensor + " ----> " + getNsteps() +
-	    			"\nEffective time walked: " + getValid_time()/60 + " minutes");
-	    }
-	    	prev_step = step_sensor; 
-	    setPrevStep_time(getTime()); 
+					+ "\nEffective time walked: " + getValid_time()/60 + " minutes" 
+					+ "\nTotal/Eff. dist:      "  + (int) (total_distance/100) + "/" + (int) (getValid_steps()*step_longitude/100) + " m"
+					+ "\nIntervals: "+getValid_time()/60 + "/" + getInterval());
+			extra.setTextSize(20); */
+			System.out.println("Step! : " + step_sensor + " ----> " + getNsteps() +
+					"\nEffective time walked: " + getValid_time()/60 + " minutes");
+			sendResult(getNsteps());
+		}
+		prev_step = step_sensor; 
+		setPrevStep_time(getTime()); 
+		//saveData(getValid_steps());
 
 	  }
+    private void playSound(Context context, Uri alert) {
+        mMediaPlayer = new MediaPlayer();
+        try {
+            mMediaPlayer.setDataSource(context, alert);
+            final AudioManager audioManager = (AudioManager) context
+                    .getSystemService(Context.AUDIO_SERVICE);
+            if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
+                mMediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+                mMediaPlayer.prepare();
+                mMediaPlayer.start();
+            }
+        } catch (IOException e) {
+            System.out.println("OOPS");
+        }
+    }
 
+    //Get an alarm sound. Try for an alarm. If none set, try notification, 
+    //Otherwise, ringtone.
+    private Uri getAlarmUri() {
+        Uri alert = RingtoneManager
+                .getDefaultUri(RingtoneManager.TYPE_ALARM);
+        if (alert == null) {
+            alert = RingtoneManager
+                    .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            if (alert == null) {
+                alert = RingtoneManager
+                        .getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+            }
+        }
+        return alert;
+    }	
+	protected void saveData(int n_steps){
+/*		SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		editor.putInt(getString(R.string.last_steps), n_steps);
+		editor.putInt(getString(R.string.last_distance), total_distance);
+		editor.commit();*/
+
+	}
 	@Override
 	public IBinder onBind(Intent intent) {
 		// TODO Auto-generated method stub
