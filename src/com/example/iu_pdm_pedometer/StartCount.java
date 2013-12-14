@@ -149,7 +149,7 @@ public class StartCount extends Activity  {
 				ns.setTextSize(30);
 				
 				if(data[5] == getInterval())
-					intervals = "COMPLETED! WELL DONE!";
+					intervals = "COMPLETED! WELL DONE!" + data[5] + "/" + getInterval();
 				else
 					intervals = "\nIntervals: "+data[5] + "/" + getInterval();
 				
@@ -450,7 +450,7 @@ public class StartCount extends Activity  {
 		SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = sharedPref.edit();
 		editor.putInt(getString(R.string.last_steps), n_steps);
-		editor.putInt(getString(R.string.last_distance), total_distance);
+		editor.putInt(getString(R.string.last_distance), (int) (n_steps * step_longitude));
 		editor.commit();
 
 	}

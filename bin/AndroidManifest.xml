@@ -40,7 +40,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.iu_pdm_pedometer.DisplayUserData" />
         </activity>
-        <activity android:name="com.nerdwin15.demo.alarmdemo.AlarmReceiverActivity" />
+        
 
         <service
             android:name="com.example.iu_pdm_pedometer.StartCountService"
